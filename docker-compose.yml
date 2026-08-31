@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: twitter_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: twitter
+      POSTGRES_PASSWORD: twitter_pass
+      POSTGRES_DB: twitter_clone
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/src/config/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  redis:
+    image: redis:7-alpine
+    container_name: twitter_redis
+    restart: always
+
+  backend:
+    build: ./backend
+    container_name: twitter_backend
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: postgres://twitter:twitter_pass@postgres:5432/twitter_clone
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: change_this_in_real_deployment
+      PORT: 4000
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build: ./frontend
+    container_name: twitter_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:4000/api
+      VITE_SOCKET_URL: http://localhost:4000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:

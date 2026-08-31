@@ -1,0 +1,14 @@
+const express = require("express");
+const router = express.Router();
+const tweetController = require("../controllers/tweet.controller");
+const { requireAuth, optionalAuth } = require("../middleware/auth");
+router.post("/", requireAuth, tweetController.createTweet);
+router.get("/timeline", requireAuth, tweetController.getTimeline);
+router.get("/trending", tweetController.getTrending);
+router.get("/search", optionalAuth, tweetController.search);
+router.post("/:id/like", requireAuth, tweetController.like);
+router.delete("/:id/like", requireAuth, tweetController.unlike);
+router.get("/:id/replies", optionalAuth, tweetController.getReplies);
+router.post("/:id/repost", requireAuth, tweetController.repost);
+router.delete("/:id", requireAuth, tweetController.deleteTweet);
+module.exports = router;
